@@ -20,7 +20,7 @@
   .thumb img { max-width:100%; max-height:100%; }
   .controls { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px; }
   .meta-list { display:flex; flex-direction:column; gap:6px; }
-  .log { font-family:monospace; font-size:13px; color:#222; background:#fafafa; padding:8px; border-radius:6px; border:1px solid #eee; height:130px; overflow:auto; }
+  .log { font-family:monospace; font-size:13px; color:#222; background:#fafafa; padding:8px; border-radius:6px; border:1px solid #eee; height:130px; overflow:auto; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; }
 </style>
 </head>
 <body>
@@ -37,8 +37,8 @@
       <div style="width:260px">
         <label>Canvas size (px)</label>
         <div style="display:flex;gap:6px">
-          <input id="canvasW" type="number" value="1600" min="200" style="width:120px" /> 
-          <input id="canvasH" type="number" value="1200" min="200" style="width:120px" />
+          <input id="canvasW" type="number" value="2160" min="200" style="width:120px" /> 
+          <input id="canvasH" type="number" value="3840" min="200" style="width:120px" />
         </div>
         <div class="small">Final output dimensions in pixels.</div>
       </div>
@@ -53,13 +53,13 @@
 
       <div>
         <label>Inner box width (%)</label>
-        <input id="innerWidthPct" type="number" value="90" min="1" max="100" />
+        <input id="innerWidthPct" type="number" value="100" min="1" max="100" />
         <div class="small">Percent of inner available width (after frame) used for the image box.</div>
       </div>
 
       <div>
         <label>Inner box height (%)</label>
-        <input id="innerHeightPct" type="number" value="90" min="1" max="100" />
+        <input id="innerHeightPct" type="number" value="60" min="1" max="100" />
         <div class="small">Percent of inner available height (after frame and caption) used for the image box.</div>
       </div>
 
@@ -76,20 +76,65 @@
 
       <div>
         <label>Mat (inner) color</label>
-        <input id="matColor" type="color" value="#000000" />
+        <input id="matColor" type="color" value="#ffffff" />
       </div>
     </div>
 
     <div style="margin-top:8px" class="controls">
       <div>
-        <label>Caption fields (EXIF)</label>
-        <div class="meta-list">
+        <label>Caption fields (EXIF) - Select which metadata to display</label>
+        <div class="meta-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #e0e3e8; padding: 8px; border-radius: 6px;">
+          <label><input class="meta-field" type="checkbox" value="Make" checked /> Make</label>
+          <label><input class="meta-field" type="checkbox" value="Model" checked /> Model</label>
+          <label><input class="meta-field" type="checkbox" value="XResolution" checked /> XResolution</label>
+          <label><input class="meta-field" type="checkbox" value="YResolution" checked /> YResolution</label>
+          <label><input class="meta-field" type="checkbox" value="ResolutionUnit" /> ResolutionUnit</label>
+          <label><input class="meta-field" type="checkbox" value="Software" /> Software</label>
+          <label><input class="meta-field" type="checkbox" value="DateTime" checked /> DateTime</label>
+          <label><input class="meta-field" type="checkbox" value="ExifIFDPointer" /> ExifIFDPointer</label>
+          <label><input class="meta-field" type="checkbox" value="ExposureTime" checked /> ExposureTime</label>
+          <label><input class="meta-field" type="checkbox" value="FNumber" checked /> FNumber</label>
+          <label><input class="meta-field" type="checkbox" value="ExposureProgram" checked /> ExposureProgram</label>
+          <label><input class="meta-field" type="checkbox" value="ISOSpeedRatings" checked /> ISOSpeedRatings</label>
+          <label><input class="meta-field" type="checkbox" value="ExifVersion" /> ExifVersion</label>
           <label><input class="meta-field" type="checkbox" value="DateTimeOriginal" checked /> DateTimeOriginal</label>
-          <label><input class="meta-field" type="checkbox" value="Make" /> Make</label>
-          <label><input class="meta-field" type="checkbox" value="Model" /> Model</label>
-          <label><input class="meta-field" type="checkbox" value="FNumber" /> FNumber</label>
-          <label><input class="meta-field" type="checkbox" value="ExposureTime" /> ExposureTime</label>
-          <label><input class="meta-field" type="checkbox" value="ISOSpeedRatings" /> ISO</label>
+          <label><input class="meta-field" type="checkbox" value="DateTimeDigitized" /> DateTimeDigitized</label>
+          <label><input class="meta-field" type="checkbox" value="ShutterSpeedValue" /> ShutterSpeedValue</label>
+          <label><input class="meta-field" type="checkbox" value="ApertureValue" /> ApertureValue</label>
+          <label><input class="meta-field" type="checkbox" value="ExposureBias" /> ExposureBias</label>
+          <label><input class="meta-field" type="checkbox" value="MaxApertureValue" /> MaxApertureValue</label>
+          <label><input class="meta-field" type="checkbox" value="MeteringMode" /> MeteringMode</label>
+          <label><input class="meta-field" type="checkbox" value="LightSource" /> LightSource</label>
+          <label><input class="meta-field" type="checkbox" value="Flash" /> Flash</label>
+          <label><input class="meta-field" type="checkbox" value="FocalLength" /> FocalLength</label>
+          <label><input class="meta-field" type="checkbox" value="SubsecTimeOriginal" /> SubsecTimeOriginal</label>
+          <label><input class="meta-field" type="checkbox" value="SubsecTimeDigitized" /> SubsecTimeDigitized</label>
+          <label><input class="meta-field" type="checkbox" value="ColorSpace" /> ColorSpace</label>
+          <label><input class="meta-field" type="checkbox" value="FocalPlaneXResolution" /> FocalPlaneXResolution</label>
+          <label><input class="meta-field" type="checkbox" value="FocalPlaneYResolution" /> FocalPlaneYResolution</label>
+          <label><input class="meta-field" type="checkbox" value="FocalPlaneResolutionUnit" /> FocalPlaneResolutionUnit</label>
+          <label><input class="meta-field" type="checkbox" value="SensingMethod" /> SensingMethod</label>
+          <label><input class="meta-field" type="checkbox" value="FileSource" /> FileSource</label>
+          <label><input class="meta-field" type="checkbox" value="SceneType" /> SceneType</label>
+          <label><input class="meta-field" type="checkbox" value="CustomRendered" /> CustomRendered</label>
+          <label><input class="meta-field" type="checkbox" value="ExposureMode" /> ExposureMode</label>
+          <label><input class="meta-field" type="checkbox" value="WhiteBalance" /> WhiteBalance</label>
+          <label><input class="meta-field" type="checkbox" value="DigitalZoomRatio" /> DigitalZoomRatio</label>
+          <label><input class="meta-field" type="checkbox" value="FocalLengthIn35mmFilm" /> FocalLengthIn35mmFilm</label>
+          <label><input class="meta-field" type="checkbox" value="SceneCaptureType" /> SceneCaptureType</label>
+          <label><input class="meta-field" type="checkbox" value="GainControl" /> GainControl</label>
+          <label><input class="meta-field" type="checkbox" value="Contrast" /> Contrast</label>
+          <label><input class="meta-field" type="checkbox" value="Saturation" /> Saturation</label>
+          <label><input class="meta-field" type="checkbox" value="Sharpness" /> Sharpness</label>
+          <label><input class="meta-field" type="checkbox" value="thumbnail" /> thumbnail</label>
+        </div>
+      </div>
+
+      <div>
+        <label>Caption position</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label><input name="capPosition" type="radio" value="above" /> Above image</label>
+          <label><input name="capPosition" type="radio" value="below" checked /> Below image</label>
         </div>
       </div>
 
@@ -103,13 +148,33 @@
       </div>
 
       <div>
+        <label>Caption reference</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label><input name="capRef" type="radio" value="matte" /> Inner matte</label>
+          <label><input name="capRef" type="radio" value="image" checked /> Image bounds</label>
+        </div>
+      </div>
+
+      <div>
         <label>Caption font size (px)</label>
-        <input id="fontSize" type="number" value="20" min="8" />
+        <input id="fontSize" type="number" value="44" min="8" />
       </div>
 
       <div>
         <label>Caption margin below image (px)</label>
-        <input id="capMargin" type="number" value="18" min="0" />
+        <input id="capMargin" type="number" value="30" min="0" />
+      </div>
+      
+      <div>
+        <label>Vertical offset (px)</label>
+        <input id="verticalOffset" type="number" value="-200" />
+        <div class="small">Move image and caption up (negative) or down (positive) by pixels</div>
+      </div>
+      
+      <div>
+        <label>Max caption width (px, 0=no wrap)</label>
+        <input id="maxCaptionWidth" type="number" value="0" min="0" />
+        <div class="small">Set to 0 for single line, or specify max width for text wrapping</div>
       </div>
     </div>
 
@@ -157,16 +222,29 @@ fileInput.addEventListener('change', () => {
 });
 
 async function readExif(file){
-  if (!window.EXIF) return {};
+  if (!window.EXIF) {
+    log('EXIF.js not loaded - please click "Load exif-js" first');
+    return {};
+  }
   return new Promise(resolve => {
     const fr = new FileReader();
     fr.onload = e => {
       try {
-        const tags = EXIF.readFromBinaryFile(e.target.result);
+        log(`Reading EXIF data from ${file.name}...`);
+        const buffer = e.target.result;
+        log(`File read successfully, buffer size: ${buffer.byteLength} bytes`);
+        const tags = EXIF.readFromBinaryFile(buffer);
+        log(`EXIF tags found: ${tags ? Object.keys(tags).join(', ') : 'none'}`);
         resolve(tags || {});
-      } catch { resolve({}); }
+      } catch (err) { 
+        log(`Error reading EXIF: ${err.message}`);
+        resolve({}); 
+      }
     };
-    fr.onerror = () => resolve({});
+    fr.onerror = (err) => {
+      log(`FileReader error: ${err}`);
+      resolve({});
+    };
     fr.readAsArrayBuffer(file);
   });
 }
@@ -188,7 +266,238 @@ function buildCaption(tags, file, selectedFields){
   return tags.DateTimeOriginal || file.name;
 }
 
-// rest of your processAndDownloadFile and listeners remain as before
+function wrapText(ctx, text, maxWidth) {
+  if (maxWidth <= 0) return [text];
+  
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = words[0];
+
+  for (let i = 1; i < words.length; i++) {
+    const testLine = currentLine + ' ' + words[i];
+    const metrics = ctx.measureText(testLine);
+    
+    if (metrics.width > maxWidth) {
+      lines.push(currentLine);
+      currentLine = words[i];
+    } else {
+      currentLine = testLine;
+    }
+  }
+  lines.push(currentLine);
+  return lines;
+}
+
+async function processAndDownloadFile(file) {
+  try {
+    // Create canvas and get context
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Get settings from inputs
+    const canvasWidth = parseInt(document.getElementById('canvasW').value);
+    const canvasHeight = parseInt(document.getElementById('canvasH').value);
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    
+    // Frame settings
+    const frameColor = document.getElementById('frameColor').value;
+    const matColor = document.getElementById('matColor').value;
+    const framePct = parseInt(document.getElementById('framePct').value) / 100;
+    const innerWidthPct = parseInt(document.getElementById('innerWidthPct').value) / 100;
+    const innerHeightPct = parseInt(document.getElementById('innerHeightPct').value) / 100;
+    const radiusPct = parseInt(document.getElementById('radiusPct').value) / 100;
+    
+    // Caption settings
+    const fontSize = parseInt(document.getElementById('fontSize').value);
+    const capMargin = parseInt(document.getElementById('capMargin').value);
+    const maxCaptionWidth = parseInt(document.getElementById('maxCaptionWidth').value);
+    const captionAlign = document.querySelector('input[name="capPos"]:checked').value;
+    const captionPosition = document.querySelector('input[name="capPosition"]:checked').value;
+    const verticalOffset = parseInt(document.getElementById('verticalOffset').value) || 0;
+    const selectedFields = Array.from(document.querySelectorAll('.meta-field:checked')).map(el => el.value);
+    
+    // Load image
+    const img = await createImageBitmap(file);
+    
+    // Calculate frame dimensions
+    const frameThickness = Math.min(canvasWidth, canvasHeight) * framePct;
+    
+    // Calculate space needed for caption
+    const lineHeight = fontSize * 1.2;
+    const captionSpace = capMargin + (fontSize * 3); // Reserve space for up to 3 lines
+    
+    // Calculate available space based on caption position
+    let availableHeight;
+    if (captionPosition === 'above') {
+      availableHeight = canvasHeight - 2 * frameThickness - captionSpace;
+    } else { // below
+      availableHeight = canvasHeight - 2 * frameThickness - captionSpace;
+    }
+    
+    const innerWidth = (canvasWidth - 2 * frameThickness) * innerWidthPct;
+    const innerHeight = availableHeight * innerHeightPct;
+    
+    // Calculate image position based on caption position
+    let innerX = (canvasWidth - innerWidth) / 2;
+    let innerY;
+    
+    if (captionPosition === 'above') {
+      // Image positioned lower to make room for caption above
+      innerY = frameThickness + captionSpace + (availableHeight - innerHeight) / 2;
+    } else { // below
+      // Image positioned higher to make room for caption below
+      innerY = frameThickness + (availableHeight - innerHeight) / 2;
+    }
+    
+    // Apply vertical offset to move image and caption together
+    innerY += verticalOffset;
+    
+    // Draw outer frame
+    ctx.fillStyle = frameColor;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    
+    // Draw inner mat color
+    ctx.fillStyle = matColor;
+    ctx.fillRect(frameThickness, frameThickness, 
+                 canvasWidth - 2 * frameThickness, 
+                 canvasHeight - 2 * frameThickness);
+    
+    // Calculate image dimensions and position
+    const scale = Math.min(innerWidth / img.width, innerHeight / img.height);
+    const scaledWidth = img.width * scale;
+    const scaledHeight = img.height * scale;
+    const imageX = innerX + (innerWidth - scaledWidth) / 2;
+    const imageY = innerY + (innerHeight - scaledHeight) / 2;
+
+    // Create rounded rectangle clipping path for the image itself
+    const radius = Math.min(scaledWidth, scaledHeight) * radiusPct;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(imageX + radius, imageY);
+    ctx.lineTo(imageX + scaledWidth - radius, imageY);
+    ctx.quadraticCurveTo(imageX + scaledWidth, imageY, imageX + scaledWidth, imageY + radius);
+    ctx.lineTo(imageX + scaledWidth, imageY + scaledHeight - radius);
+    ctx.quadraticCurveTo(imageX + scaledWidth, imageY + scaledHeight, imageX + scaledWidth - radius, imageY + scaledHeight);
+    ctx.lineTo(imageX + radius, imageY + scaledHeight);
+    ctx.quadraticCurveTo(imageX, imageY + scaledHeight, imageX, imageY + scaledHeight - radius);
+    ctx.lineTo(imageX, imageY + radius);
+    ctx.quadraticCurveTo(imageX, imageY, imageX + radius, imageY);
+    ctx.closePath();
+    ctx.clip();
+    
+    // Draw image
+    ctx.drawImage(img, imageX, imageY, scaledWidth, scaledHeight);
+    ctx.restore();
+    
+    // Draw caption with text wrapping
+    const exifTags = await readExif(file);
+    const caption = buildCaption(exifTags, file, selectedFields);
+    
+    if (caption) {
+      ctx.font = `${fontSize}px "Times New Roman"`;
+      ctx.fillStyle = '#000000';
+      ctx.textBaseline = 'top';
+      
+      // Get caption reference point preference
+      const captionRef = document.querySelector('input[name="capRef"]:checked').value;
+      
+      // Calculate reference boundaries based on selection
+      let refX, refWidth;
+      if (captionRef === 'image') {
+        refX = imageX;
+        refWidth = scaledWidth;
+      } else { // matte
+        refX = innerX;
+        refWidth = innerWidth;
+      }
+      
+      // Wrap text if maxCaptionWidth is set
+      const wrapWidth = maxCaptionWidth > 0 ? maxCaptionWidth : refWidth;
+      const lines = wrapText(ctx, caption, wrapWidth);
+      
+      const lineHeight = fontSize * 1.2;
+      let textY;
+      
+      // Position caption based on selection
+      if (captionPosition === 'above') {
+        // Caption above image
+        textY = frameThickness + capMargin;
+      } else { // below
+        // Caption below image
+        textY = innerY + innerHeight + capMargin;
+      }
+      
+      lines.forEach((line, index) => {
+        const textWidth = ctx.measureText(line).width;
+        let textX;
+        
+        switch (captionAlign) {
+          case 'center':
+            textX = refX + (refWidth / 2) - (textWidth / 2);
+            break;
+          case 'right':
+            textX = refX + refWidth - textWidth;
+            break;
+          default: // left
+            textX = refX;
+        }
+        
+        ctx.fillText(line, textX, textY + (index * lineHeight));
+      });
+    }
+    
+    // Download the result
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = 'framed_' + file.name.replace(/\.[^/.]+$/, '') + '.jpg';
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      log(`Downloaded: framed_${file.name}`);
+    }, 'image/jpeg', 0.92);
+    
+  } catch (err) {
+    log(`Error processing ${file.name}: ${err.message}`);
+    console.error(err);
+  }
+}
+
+// Add event listeners
+processBtn.addEventListener('click', async () => {
+  const files = Array.from(fileInput.files || []).filter(f => f.type && f.type.startsWith('image'));
+  if (!files.length) {
+    log('No images selected');
+    return;
+  }
+  log(`Processing ${files.length} image(s)...`);
+  for (const file of files) {
+    await processAndDownloadFile(file);
+  }
+  log('All done!');
+});
+
+loadExifBtn.addEventListener('click', () => {
+  if (window.EXIF) {
+    log('EXIF.js is already loaded');
+    return;
+  }
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/exif-js';
+  script.onload = () => {
+    log('EXIF.js loaded successfully');
+    if (window.EXIF) {
+      log('EXIF object is available');
+    } else {
+      log('Warning: EXIF object not found after loading');
+    }
+  };
+  script.onerror = () => log('Failed to load EXIF.js - check your internet connection');
+  document.body.appendChild(script);
+});
 </script>
 </body>
 </html>
