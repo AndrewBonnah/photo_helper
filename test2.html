@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Canvas Framer — fixed (width/height %) + caption below image</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin:18px; color:#111; background:#f5f6f8; }
+  h1 { margin:0 0 10px; font-size:18px; }
+  .panel { background:white; border:1px solid #e0e3e8; padding:12px; border-radius:8px; max-width:980px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
+  label { font-size:13px; color:#333; display:block; margin-bottom:6px; }
+  input[type="file"]{ display:block; }
+  input[type="number"], input[type="color"], select { padding:6px; border:1px solid #d6d9de; border-radius:6px; }
+  .small { font-size:12px; color:#666; }
+  button { padding:8px 12px; border-radius:7px; border:0; background:#0b67ff; color:white; cursor:pointer; }
+  button.secondary { background:#f0f2f5; color:#111; border:1px solid #d6d9de; }
+  .preview { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+  .thumb { width:160px; height:120px; border:1px solid #e6e8eb; display:flex; align-items:center; justify-content:center; background:#fff; border-radius:6px; overflow:hidden; }
+  .thumb img { max-width:100%; max-height:100%; }
+  .controls { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px; }
+  .meta-list { display:flex; flex-direction:column; gap:6px; }
+  .log { font-family:monospace; font-size:13px; color:#222; background:#fafafa; padding:8px; border-radius:6px; border:1px solid #eee; height:130px; overflow:auto; }
+</style>
+</head>
+<body>
+  <h1>Canvas Framer — width/height % box, caption below image</h1>
+
+  <div class="panel">
+    <div class="row">
+      <div style="flex:1 1 420px">
+        <label>Select images (multiple)</label>
+        <input id="fileInput" type="file" accept="image/*" multiple />
+        <div class="small">Files are processed locally in the browser. No upload.</div>
+      </div>
+
+      <div style="width:260px">
+        <label>Canvas size (px)</label>
+        <div style="display:flex;gap:6px">
+          <input id="canvasW" type="number" value="1600" min="200" style="width:120px" /> 
+          <input id="canvasH" type="number" value="1200" min="200" style="width:120px" />
+        </div>
+        <div class="small">Final output dimensions in pixels.</div>
+      </div>
+    </div>
+
+    <div class="row controls">
+      <div>
+        <label>Frame thickness (%)</label>
+        <input id="framePct" type="number" value="4" min="0" max="49" /> 
+        <div class="small">Percent of the canvas smaller side used as outer frame thickness.</div>
+      </div>
+
+      <div>
+        <label>Inner box width (%)</label>
+        <input id="innerWidthPct" type="number" value="90" min="1" max="100" />
+        <div class="small">Percent of inner available width (after frame) used for the image box.</div>
+      </div>
+
+      <div>
+        <label>Inner box height (%)</label>
+        <input id="innerHeightPct" type="number" value="90" min="1" max="100" />
+        <div class="small">Percent of inner available height (after frame and caption) used for the image box.</div>
+      </div>
+
+      <div>
+        <label>Inner corner radius (%)</label>
+        <input id="radiusPct" type="number" value="4" min="0" max="50" />
+        <div class="small">Percent of min(innerBoxW,innerBoxH) used as border radius for the image.</div>
+      </div>
+
+      <div>
+        <label>Frame color</label>
+        <input id="frameColor" type="color" value="#ffffff" />
+      </div>
+
+      <div>
+        <label>Mat (inner) color</label>
+        <input id="matColor" type="color" value="#000000" />
+      </div>
+    </div>
+
+    <div style="margin-top:8px" class="controls">
+      <div>
+        <label>Caption fields (EXIF)</label>
+        <div class="meta-list">
+          <label><input class="meta-field" type="checkbox" value="DateTimeOriginal" checked /> DateTimeOriginal</label>
+          <label><input class="meta-field" type="checkbox" value="Make" /> Make</label>
+          <label><input class="meta-field" type="checkbox" value="Model" /> Model</label>
+          <label><input class="meta-field" type="checkbox" value="FNumber" /> FNumber</label>
+          <label><input class="meta-field" type="checkbox" value="ExposureTime" /> ExposureTime</label>
+          <label><input class="meta-field" type="checkbox" value="ISOSpeedRatings" /> ISO</label>
+        </div>
+      </div>
+
+      <div>
+        <label>Caption alignment</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label><input name="capPos" type="radio" value="left" checked /> left</label>
+          <label><input name="capPos" type="radio" value="center" /> center</label>
+          <label><input name="capPos" type="radio" value="right" /> right</label>
+        </div>
+      </div>
+
+      <div>
+        <label>Caption font size (px)</label>
+        <input id="fontSize" type="number" value="20" min="8" />
+      </div>
+
+      <div>
+        <label>Caption margin below image (px)</label>
+        <input id="capMargin" type="number" value="18" min="0" />
+      </div>
+    </div>
+
+    <div style="margin-top:10px" class="row">
+      <div style="display:flex;gap:8px">
+        <button id="processBtn">Process & Download</button>
+        <button id="loadExifBtn" class="secondary">Load exif-js (optional)</button>
+      </div>
+      <div class="small" style="margin-left:12px">Caption is drawn below the image (not overlapping). Times New Roman, black, no shadow.</div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Preview (first selected)</label>
+      <div class="preview" id="preview"></div>
+    </div>
+
+    <div style="margin-top:12px" class="row">
+      <div style="flex:1">
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const logEl = document.getElementById('log');
+const processBtn = document.getElementById('processBtn');
+const loadExifBtn = document.getElementById('loadExifBtn');
+
+function log(msg){
+  const t = new Date().toLocaleTimeString();
+  logEl.textContent = `[${t}] ${msg}\n` + logEl.textContent;
+}
+
+fileInput.addEventListener('change', () => {
+  preview.innerHTML = '';
+  const files = Array.from(fileInput.files || []).filter(f => f.type && f.type.startsWith('image'));
+  if (!files.length) { preview.textContent = 'no images'; return; }
+  const url = URL.createObjectURL(files[0]);
+  const img = document.createElement('img'); img.src = url;
+  img.onload = () => URL.revokeObjectURL(url);
+  const cont = document.createElement('div'); cont.className = 'thumb'; cont.appendChild(img);
+  preview.appendChild(cont);
+});
+
+async function readExif(file){
+  if (!window.EXIF) return {};
+  return new Promise(resolve => {
+    const fr = new FileReader();
+    fr.onload = e => {
+      try {
+        const tags = EXIF.readFromBinaryFile(e.target.result);
+        resolve(tags || {});
+      } catch { resolve({}); }
+    };
+    fr.onerror = () => resolve({});
+    fr.readAsArrayBuffer(file);
+  });
+}
+
+function formatField(field, value){
+  if (!value && value !== 0) return null;
+  if (field === 'FNumber') return typeof value === 'object' ? `f/${value.numerator/value.denominator}` : 'f/'+value;
+  if (field === 'ExposureTime') {
+    if (typeof value === 'object') value = value.numerator / value.denominator;
+    return value < 1 ? `1/${Math.round(1/value)}s` : value+'s';
+  }
+  if (field === 'ISOSpeedRatings') return 'ISO'+value;
+  return String(value);
+}
+
+function buildCaption(tags, file, selectedFields){
+  const parts = selectedFields.map(f => formatField(f, tags[f])).filter(Boolean);
+  if (parts.length) return parts.join(' • ');
+  return tags.DateTimeOriginal || file.name;
+}
+
+// rest of your processAndDownloadFile and listeners remain as before
+</script>
+</body>
+</html>

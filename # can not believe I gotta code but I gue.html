@@ -1,0 +1,429 @@
+<!-- # can not believe I gotta code but I guess it is what it is.
+# slow down I don't need everything done today
+# don't rush out a sub-tier product.
+
+# the purpose of this program is simple it adds a frame locally with html css and js
+#  (maybe with app/shutterspeed/iso/time info stamp at the bottom) to your photo.
+
+# it should take in a folder path (or paths) and output to a folder path (or paths) -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Canvas Framer — percentage frame & radius, caption below</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin:18px; color:#111; background:#f5f6f8; }
+  h1 { margin:0 0 10px; font-size:18px; }
+  .panel { background:white; border:1px solid #e0e3e8; padding:12px; border-radius:8px; max-width:980px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
+  label { font-size:13px; color:#333; display:block; margin-bottom:6px; }
+  input[type="file"]{ display:block; }
+  input[type="number"], input[type="color"], select { padding:6px; border:1px solid #d6d9de; border-radius:6px; }
+  .small { font-size:12px; color:#666; }
+  button { padding:8px 12px; border-radius:7px; border:0; background:#0b67ff; color:white; cursor:pointer; }
+  button.secondary { background:#f0f2f5; color:#111; border:1px solid #d6d9de; }
+  .preview { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+  .thumb { width:160px; height:120px; border:1px solid #e6e8eb; display:flex; align-items:center; justify-content:center; background:#fff; border-radius:6px; overflow:hidden; }
+  .thumb img { max-width:100%; max-height:100%; }
+  .controls { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px; }
+  .meta-list { display:flex; flex-direction:column; gap:6px; }
+  .log { font-family:monospace; font-size:13px; color:#222; background:#fafafa; padding:8px; border-radius:6px; border:1px solid #eee; height:110px; overflow:auto; }
+</style>
+</head>
+<body>
+  <h1>Canvas Framer — percent frame & radius, caption below</h1>
+
+  <div class="panel">
+    <div class="row">
+      <div style="flex:1 1 420px">
+        <label>Select images (multiple)</label>
+        <input id="fileInput" type="file" accept="image/*" multiple />
+        <div class="small">Files are processed locally in the browser. No upload.</div>
+      </div>
+
+      <div style="width:220px">
+        <label>Canvas size (px)</label>
+        <div style="display:flex;gap:6px">
+          <input id="canvasW" type="number" value="1200" min="200" style="width:100px" /> 
+          <input id="canvasH" type="number" value="1600" min="200" style="width:100px" />
+        </div>
+        <div class="small">Final output dimensions in pixels.</div>
+      </div>
+    </div>
+
+    <div class="row controls">
+      <div>
+        <label>Frame thickness (%)</label>
+        <input id="framePct" type="number" value="6" min="0" max="50" /> 
+        <div class="small">Percent of the canvas smaller side used as frame thickness.</div>
+      </div>
+
+      <div>
+        <label>Inner image corner radius (%)</label>
+        <input id="radiusPct" type="number" value="4" min="0" max="50" />
+        <div class="small">Percent of inner image min dimension used as border radius.</div>
+      </div>
+
+      <div>
+        <label>Frame color</label>
+        <input id="frameColor" type="color" value="#ffffff" />
+      </div>
+
+      <div>
+        <label>Mat (inner) color</label>
+        <input id="matColor" type="color" value="#000000" />
+      </div>
+    </div>
+
+    <div style="margin-top:8px" class="controls">
+      <div>
+        <label>Caption fields (EXIF)</label>
+        <div class="meta-list">
+          <label><input class="meta-field" type="checkbox" value="DateTimeOriginal" checked /> DateTimeOriginal</label>
+          <label><input class="meta-field" type="checkbox" value="Make" /> Make</label>
+          <label><input class="meta-field" type="checkbox" value="Model" /> Model</label>
+          <label><input class="meta-field" type="checkbox" value="FNumber" /> FNumber</label>
+          <label><input class="meta-field" type="checkbox" value="ExposureTime" /> ExposureTime</label>
+          <label><input class="meta-field" type="checkbox" value="ISOSpeedRatings" /> ISO</label>
+        </div>
+      </div>
+
+      <div>
+        <label>Caption alignment</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label><input name="capPos" type="radio" value="left" checked /> left</label>
+          <label><input name="capPos" type="radio" value="center" /> center</label>
+          <label><input name="capPos" type="radio" value="right" /> right</label>
+        </div>
+      </div>
+
+      <div>
+        <label>Caption font size (px)</label>
+        <input id="fontSize" type="number" value="20" min="8" />
+      </div>
+
+      <div>
+        <label>Caption margin below frame (px)</label>
+        <input id="capMargin" type="number" value="20" min="0" />
+      </div>
+    </div>
+
+    <div style="margin-top:10px" class="row">
+      <div style="display:flex;gap:8px">
+        <button id="processBtn">Process & Download</button>
+        <button id="loadExifBtn" class="secondary">Load exif-js (optional)</button>
+      </div>
+      <div class="small" style="margin-left:12px">Caption is drawn below the framed image (inside canvas). Times New Roman, black, no shadow.</div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Preview (first selected)</label>
+      <div class="preview" id="preview"></div>
+    </div>
+
+    <div style="margin-top:12px" class="row">
+      <div style="flex:1">
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Core behavior:
+ - User sets canvasW x canvasH (px).
+ - framePct is percent of min(canvasW,canvasH) used as frame thickness (in px).
+ - inner image area = canvas minus 2*frameThickness horizontally, and canvasH minus captionArea and 2*frameThickness vertically.
+ - radiusPct is percent of min(innerW,innerH) used as corner radius for the inner image clipping.
+ - caption area is placed below frame inside canvas (captionMargin px between frame bottom and text).
+ - caption is Times New Roman, black, no shadow, left/center/right aligned relative to inner area (respects frame margin).
+*/
+
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const logEl = document.getElementById('log');
+const processBtn = document.getElementById('processBtn');
+const loadExifBtn = document.getElementById('loadExifBtn');
+
+function log(msg){
+  const t = new Date().toLocaleTimeString();
+  logEl.textContent = `[${t}] ${msg}\n` + logEl.textContent;
+}
+
+// preview first image thumbnail
+fileInput.addEventListener('change', () => {
+  preview.innerHTML = '';
+  const files = Array.from(fileInput.files || []).filter(f => f.type && f.type.startsWith('image'));
+  if (!files.length) { preview.textContent = 'no images'; return; }
+  const f = files[0];
+  const url = URL.createObjectURL(f);
+  const img = document.createElement('img'); img.src = url;
+  img.onload = () => URL.revokeObjectURL(url);
+  const cont = document.createElement('div'); cont.className = 'thumb'; cont.appendChild(img);
+  preview.appendChild(cont);
+});
+
+// read exif via exif-js if available
+function readExif(file){
+  return new Promise((resolve) => {
+    if (!window.EXIF) { resolve(null); return; }
+    const fr = new FileReader();
+    fr.onload = (e) => {
+      try {
+        const tags = EXIF.readFromBinaryFile(e.target.result) || {};
+        resolve(tags);
+      } catch (err) {
+        resolve(null);
+      }
+    };
+    fr.onerror = () => resolve(null);
+    fr.readAsArrayBuffer(file);
+  });
+}
+
+// format exif fields nicely
+function formatField(field, value){
+  if (!value && value !== 0) return null;
+  if (field === 'FNumber') {
+    if (typeof value === 'object' && 'numerator' in value) return 'f/' + (value.numerator / value.denominator);
+    return 'f/' + value;
+  }
+  if (field === 'ExposureTime') {
+    if (typeof value === 'object' && 'numerator' in value) {
+      const val = value.numerator / value.denominator;
+      // present as fraction if <1
+      if (val < 1) return `1/${Math.round(1/val) }s`;
+      return val + 's';
+    }
+    return value + 's';
+  }
+  if (field === 'ISOSpeedRatings') return 'ISO' + value;
+  return String(value);
+}
+
+function buildCaption(tags, file, selectedFields){
+  const parts = [];
+  for (const f of selectedFields){
+    if (!tags) break;
+    const v = tags[f];
+    const txt = formatField(f, v);
+    if (txt) parts.push(txt);
+  }
+  if (parts.length) return parts.join(' • ');
+  if (tags && tags.DateTimeOriginal) return String(tags.DateTimeOriginal);
+  return file.name;
+}
+
+// draw rounded rect path helper
+function roundRectPath(ctx, x, y, w, h, r){
+  if (r <= 0) { ctx.beginPath(); ctx.rect(x,y,w,h); ctx.closePath(); return; }
+  const min = Math.min(w,h)/2;
+  if (r > min) r = min;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// wrap text (max lines)
+function wrapTextLines(ctx, text, maxWidth, maxLines=2){
+  const words = text.split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words){
+    const trial = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(trial).width <= maxWidth) cur = trial;
+    else {
+      if (cur) lines.push(cur);
+      cur = w;
+      if (lines.length >= maxLines) break;
+    }
+  }
+  if (cur && lines.length < maxLines) lines.push(cur);
+  // trim/ellipsis if needed
+  for (let i=0;i<lines.length;i++){
+    let ln = lines[i];
+    while (ctx.measureText(ln + '…').width > maxWidth && ln.length > 0) ln = ln.slice(0,-1);
+    if (ln !== lines[i]) lines[i] = ln + '…';
+  }
+  return lines;
+}
+
+function loadImage(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+function collectOptions(){
+  const canvasW = Math.max(200, parseInt(document.getElementById('canvasW').value,10) || 1200);
+  const canvasH = Math.max(200, parseInt(document.getElementById('canvasH').value,10) || 1600);
+  const framePct = Math.max(0, Math.min(50, parseFloat(document.getElementById('framePct').value) || 6));
+  const radiusPct = Math.max(0, Math.min(50, parseFloat(document.getElementById('radiusPct').value) || 4));
+  const frameColor = document.getElementById('frameColor').value;
+  const matColor = document.getElementById('matColor').value;
+  const fontSize = Math.max(8, parseInt(document.getElementById('fontSize').value,10) || 20);
+  const capMargin = Math.max(0, parseInt(document.getElementById('capMargin').value,10) || 20);
+  const capPos = document.querySelector('input[name="capPos"]:checked').value || 'left';
+  const selectedFields = Array.from(document.querySelectorAll('.meta-field:checked')).map(e => e.value);
+  return { canvasW, canvasH, framePct, radiusPct, frameColor, matColor, fontSize, capMargin, capPos, selectedFields };
+}
+
+async function processAndDownloadFile(file, opts){
+  const tags = await readExif(file);
+  const caption = buildCaption(tags, file, opts.selectedFields);
+
+  // compute thickness in px based on smaller canvas dimension
+  const minSide = Math.min(opts.canvasW, opts.canvasH);
+  const frameThickness = Math.round(minSide * (opts.framePct / 100));
+  // caption area height: estimate using font-size plus margins
+  const fontSize = opts.fontSize;
+  const captionPaddingY = 6; // padding inside caption area
+  // We'll allow up to 2 lines
+  // To compute caption area height we need a temp canvas
+  const measureCanvas = document.createElement('canvas');
+  const mctx = measureCanvas.getContext('2d');
+  mctx.font = `${fontSize}px "Times New Roman", Times, serif`;
+  const innerWInitial = opts.canvasW - 2*frameThickness;
+  const maxTextW = innerWInitial - 2*12; // 12 px inner padding
+  const lines = wrapTextLines(mctx, caption, maxTextW, 2);
+  const captionHeight = lines.length * Math.round(fontSize * 1.3) + captionPaddingY*2 + opts.capMargin;
+
+  // define inner image drawing area (exclude frame and caption)
+  const innerW = opts.canvasW - 2*frameThickness;
+  const innerH = opts.canvasH - 2*frameThickness - captionHeight;
+  // If innerH becomes too small, clamp to small positive
+  const effectiveInnerH = Math.max(10, innerH);
+
+  // corner radius px as percentage of min(innerW, innerH)
+  const cornerRadius = Math.round(Math.min(innerW, effectiveInnerH) * (opts.radiusPct / 100));
+
+  // create canvas that includes caption area at bottom (canvasH already includes that)
+  const canvas = document.createElement('canvas');
+  canvas.width = opts.canvasW;
+  canvas.height = opts.canvasH;
+  const ctx = canvas.getContext('2d');
+
+  // draw frame (outer)
+  ctx.fillStyle = opts.frameColor;
+  ctx.fillRect(0,0,canvas.width, canvas.height);
+
+  // draw mat (inner background) behind image area
+  ctx.fillStyle = opts.matColor;
+  ctx.fillRect(frameThickness, frameThickness, innerW, effectiveInnerH);
+
+  // load image and scale proportionally to fit innerW x effectiveInnerH
+  const img = await loadImage(file);
+  let drawW = img.width;
+  let drawH = img.height;
+  const scale = Math.min(innerW / drawW, effectiveInnerH / drawH, 1); // prevents upscaling; remove ",1" if you want upscaling
+  drawW = Math.round(drawW * scale);
+  drawH = Math.round(drawH * scale);
+  // center image within inner area
+  const dx = frameThickness + Math.round((innerW - drawW)/2);
+  const dy = frameThickness + Math.round((effectiveInnerH - drawH)/2);
+
+  // clip to rounded rect for inner image only
+  ctx.save();
+  roundRectPath(ctx, dx, dy, drawW, drawH, cornerRadius);
+  ctx.clip();
+  ctx.drawImage(img, dx, dy, drawW, drawH);
+  ctx.restore();
+
+  // draw caption background? user asked no background; so we put text plainly below, fully below frame
+  // We'll draw text in black, Times New Roman, no shadow
+  ctx.fillStyle = '#000000';
+  ctx.font = `${fontSize}px "Times New Roman", Times, serif`;
+  ctx.textBaseline = 'top';
+
+  // recompute lines for actual max width (respect inner area padding)
+  const captionPaddingX = 12;
+  const textMaxW = innerW - 2*captionPaddingX;
+  const finalLines = wrapTextLines(ctx, caption, textMaxW, 2);
+  const lineHeight = Math.round(fontSize * 1.3);
+  // compute starting Y for text block: bottom of image (frameThickness + effectiveInnerH) + capMargin
+  const textBlockTop = frameThickness + effectiveInnerH + opts.capMargin;
+
+  // alignment anchors
+  let textX;
+  if (opts.capPos === 'left') textX = frameThickness + captionPaddingX;
+  else if (opts.capPos === 'center') textX = frameThickness + innerW / 2;
+  else textX = frameThickness + innerW - captionPaddingX;
+
+  ctx.textAlign = (opts.capPos === 'center') ? 'center' : (opts.capPos === 'left' ? 'left' : 'right');
+
+  for (let i=0;i<finalLines.length;i++){
+    const y = textBlockTop + i * lineHeight;
+    ctx.fillText(finalLines[i], textX, y);
+  }
+
+  // export
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      const outName = file.name.replace(/\.[^/.]+$/,'') + '_framed.jpg';
+      resolve({ blob, filename: outName });
+    }, 'image/jpeg', 0.94);
+  });
+}
+
+processBtn.addEventListener('click', async () => {
+  const files = Array.from(fileInput.files || []).filter(f => f.type && f.type.startsWith('image'));
+  if (!files.length) { alert('Select one or more images'); return; }
+  processBtn.disabled = true;
+  const opts = collectOptions();
+  log(`Starting ${files.length} image(s) — canvas ${opts.canvasW}x${opts.canvasH}px, frame ${opts.framePct}%`);
+  for (const f of files){
+    try {
+      log('Processing: ' + f.name);
+      const { blob, filename } = await processAndDownloadFile(f, opts);
+      // trigger download
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+      log('Downloaded: ' + filename);
+    } catch (err) {
+      console.error(err);
+      log('Error processing ' + f.name + ': ' + (err.message || err));
+    }
+  }
+  log('Batch complete.');
+  processBtn.disabled = false;
+});
+
+// dynamic load exif-js
+loadExifBtn.addEventListener('click', async () => {
+  if (window.EXIF) { log('exif-js already loaded'); loadExifBtn.disabled=true; return; }
+  try {
+    await loadScript('https://cdn.jsdelivr.net/npm/exif-js@2.3.0/dist/exif.min.js');
+    log('exif-js loaded. EXIF metadata will be used when available.');
+    loadExifBtn.textContent = 'exif-js loaded';
+    loadExifBtn.disabled = true;
+  } catch (err) {
+    log('Failed to load exif-js: ' + (err.message || err));
+    alert('Failed to load exif-js. You can still process images; filenames will be used as fallback.');
+  }
+});
+
+function loadScript(src){
+  return new Promise((resolve,reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = () => resolve();
+    s.onerror = (e) => reject(e || new Error('failed to load ' + src));
+    document.head.appendChild(s);
+  });
+}
+</script>
+</body>
+</html>
